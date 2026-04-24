@@ -30,6 +30,11 @@ The PowerShell/Python split is intentional: the core logic needs to run inside A
 - **Claude model is Haiku** (`claude-haiku-4-5-20251001`) for cost. Both the daily coaching reply and weekly summary run on Haiku unless there's a specific reason to upgrade.
 - **Data store is local JSON now, Azure Table Storage later.** Write the storage layer behind a small interface so the migration is a swap, not a rewrite. Don't prematurely pull in Table Storage SDKs.
 
+## Code style
+
+- **PowerShell files (`.ps1`, `.psm1`) must include learner-friendly inline comments in English.** The user is learning PowerShell (studying AZ-802), not an expert. Explain what each section does and what non-trivial commands/cmdlets do — e.g. `Get-Content`, `ConvertFrom-Json`, `param(...)`, splatting, pipeline `$_`, `[CmdletBinding()]`, error handling with `try/catch`. Avoid explaining truly obvious things (`$x = 1`). This rule overrides the general "default to writing no comments" guidance for this repo's PowerShell only.
+- Python files follow the normal minimal-comment style — the user isn't learning Python.
+
 ## Commands
 
 No build/test commands yet — repo has no source. Update this section once the first component lands.
