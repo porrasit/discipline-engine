@@ -134,16 +134,16 @@ The `DisciplineEngine` PowerShell module lives at `src/DisciplineEngine/` and ex
 Import-Module ./src/DisciplineEngine/DisciplineEngine.psd1
 
 # Log a habit completion for today (UserId will be required after the refactor)
-Add-HabitEntry -UserId dt -Habit exercise -Notes '30 min run'
+Add-HabitEntry -UserId poom -Habit exercise -Notes '30 min run'
 
 # Log for a specific date
-Add-HabitEntry -UserId dt -Habit sleep -Date 2026-04-24 -Completed $false -Notes 'bed at 23:40'
+Add-HabitEntry -UserId poom -Habit sleep -Date 2026-04-24 -Completed $false -Notes 'bed at 23:40'
 
 # Weekly compliance summary for the current week
-Get-HabitSummary -UserId dt
+Get-HabitSummary -UserId poom
 
 # Weekly compliance summary for a specific week
-Get-HabitSummary -UserId dt -WeekOf 2026-04-20
+Get-HabitSummary -UserId poom -WeekOf 2026-04-20
 ```
 
 **Next refactor task:** the module currently does NOT support `-UserId` — it reads/writes a single `./data/habits.json` file (overridable via `$env:DISCIPLINE_ENGINE_STORE`). Adding `-UserId` to all Public functions, moving storage to `data/users/{userId}/habits.json`, and defaulting to `$env:DISCIPLINE_ENGINE_DEFAULT_USER` is the next change. The usage above reflects the target state, not the shipped state.

@@ -1,0 +1,24 @@
+# Secrets — never commit real credentials
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+.python-version.local
+
+# uv
+.uv/
+
+# Editor / OS
+.DS_Store
+.vscode/
+.idea/
+
+# Logs
+*.log
