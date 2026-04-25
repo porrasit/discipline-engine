@@ -1,12 +1,18 @@
 function Add-HabitEntry {
     <#
     .SYNOPSIS
-    Log one habit completion for a given date.
+    Log one habit completion for a given user and date.
 
     .DESCRIPTION
-    Appends a new entry to the habit store. The entry records which habit
-    was performed (exercise | sleep | development), whether it was
-    completed, the date, and optional free-text notes.
+    Appends a new entry to the user's habit store at
+    data/users/<UserId>/habits.json. The entry records which habit was
+    performed (exercise | sleep | development), whether it was completed,
+    the date, and optional free-text notes.
+
+    .PARAMETER UserId
+    Which user the entry belongs to. If omitted, falls back to
+    $env:DISCIPLINE_ENGINE_DEFAULT_USER. If neither is set, the function
+    throws a clear error.
 
     .PARAMETER Habit
     Which habit this entry is for. Must be one of: exercise, sleep, development.
@@ -20,18 +26,19 @@ function Add-HabitEntry {
     .PARAMETER Notes
     Optional free-text notes (e.g. "30 min run", "asleep at 22:15").
 
-    .PARAMETER Path
-    Path to the JSON store. Defaults to the DISCIPLINE_ENGINE_STORE
-    environment variable if set, otherwise ./data/habits.json.
-
     .EXAMPLE
     Add-HabitEntry -Habit exercise -Notes '30 min run'
 
     .EXAMPLE
-    Add-HabitEntry -Habit sleep -Date 2026-04-24 -Completed $false -Notes 'bed at 23:40'
+    Add-HabitEntry -UserId poom -Habit sleep -Date 2026-04-24 -Completed $false -Notes 'bed at 23:40'
     #>
     [CmdletBinding()]
     param(
+        # -UserId is NOT mandatory at the parameter level because we allow
+        # the env-var fallback. Resolve-UserId enforces "one of the two
+        # must be set" and throws if neither is.
+        [string]$UserId,
+
         # [ValidateSet(...)] is an input-validation attribute: PowerShell
         # rejects any value that isn't in this list BEFORE the function runs,
         # and tab-completion offers these three strings to callers.
@@ -46,17 +53,13 @@ function Add-HabitEntry {
 
         [bool]$Completed = $true,
 
-        [string]$Notes = '',
-
-        # The default uses a subexpression $( ... ) to pick an env var if
-        # set, otherwise fall back to a relative path. This makes it easy
-        # to override in Azure Automation without changing code.
-        [string]$Path = $(if ($env:DISCIPLINE_ENGINE_STORE) {
-            $env:DISCIPLINE_ENGINE_STORE
-        } else {
-            './data/habits.json'
-        })
+        [string]$Notes = ''
     )
+
+    # Resolve the effective user up front so the error surfaces before we
+    # do any file I/O. Note we overwrite our own $UserId with the resolved
+    # value so the rest of the function can use it unconditionally.
+    $UserId = Resolve-UserId -UserId $UserId
 
     # Build the new entry. [pscustomobject]@{...} creates an object from a
     # hashtable while preserving key order — important for predictable JSON
@@ -71,7 +74,7 @@ function Add-HabitEntry {
     # Load existing entries through the private helper. Public code only
     # ever goes through Get-/Save-HabitStore — that's the seam that lets
     # us swap storage backends later.
-    $store = Get-HabitStore -Path $Path
+    $store = Get-HabitStore -UserId $UserId
 
     # `+=` on an array builds a NEW array with the extra element.
     # (PowerShell arrays are fixed-size under the hood — fine for our
@@ -80,7 +83,7 @@ function Add-HabitEntry {
     $store += $entry
 
     # Persist the updated list.
-    Save-HabitStore -Path $Path -Entries $store
+    Save-HabitStore -UserId $UserId -Entries $store
 
     # Return the entry we just saved so callers/scripts can log it or
     # pipe it into another cmdlet.

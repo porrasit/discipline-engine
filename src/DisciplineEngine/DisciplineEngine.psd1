@@ -30,6 +30,7 @@
     FunctionsToExport = @(
         'Add-HabitEntry'
         'Get-HabitSummary'
+        'Get-UserProfile'
     )
 
     # Explicitly export nothing else. Empty arrays make the intent clear

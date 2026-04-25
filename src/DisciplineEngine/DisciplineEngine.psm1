@@ -14,6 +14,31 @@
 $publicPath  = Join-Path $PSScriptRoot 'Public'
 $privatePath = Join-Path $PSScriptRoot 'Private'
 
+# --- Data root resolution --------------------------------------------------
+# The module ships at  <repo>/src/DisciplineEngine/  and data lives at
+# <repo>/data/ — so two levels up from $PSScriptRoot. Resolve once at import
+# time and stash in a module-scoped variable so every helper uses the same
+# path, and we have a single seam to swap for Azure Table Storage later.
+#
+# $script:Foo  is a SCOPE MODIFIER — the variable lives at module scope and
+# is visible to every function defined in this module, but NOT to callers.
+# That's what we want for internal state.
+#
+# $env:DISCIPLINE_ENGINE_DATA_ROOT lets Azure Automation or tests point the
+# module at a different folder without code changes.
+if ($env:DISCIPLINE_ENGINE_DATA_ROOT) {
+    $script:DataRoot = $env:DISCIPLINE_ENGINE_DATA_ROOT
+}
+else {
+    # Join-Path with '..' segments works, but Resolve-Path (or the .NET
+    # [System.IO.Path]::GetFullPath) collapses them into a clean absolute
+    # path. We use GetFullPath because it doesn't error if the folder is
+    # missing — first-run friendliness.
+    $script:DataRoot = [System.IO.Path]::GetFullPath(
+        (Join-Path $PSScriptRoot '..' '..' 'data')
+    )
+}
+
 # Get-ChildItem is the equivalent of `ls`. -Filter '*.ps1' narrows to our
 # script files. -ErrorAction SilentlyContinue prevents a crash if a folder
 # happens to be empty or missing.

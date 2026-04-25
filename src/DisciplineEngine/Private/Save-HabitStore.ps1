@@ -1,16 +1,25 @@
 function Save-HabitStore {
     <#
     .SYNOPSIS
-    Internal helper: serialize entries to JSON and write them to disk.
+    Internal helper: serialize entries to JSON and write them to the user's
+    habit store file.
 
     .DESCRIPTION
-    Overwrites the file at -Path with a JSON array representing -Entries.
-    Creates the parent folder if it does not exist.
+    Overwrites data/users/{UserId}/habits.json with a JSON array representing
+    -Entries. Creates the parent folder (including data/users/{UserId}/) if
+    it does not already exist.
+
+    .PARAMETER UserId
+    Which user's habit file to write. Resolved under $script:DataRoot.
+
+    .PARAMETER Entries
+    The full list of habit entries to persist. Passing an empty array
+    overwrites the file with '[]' — that is the supported way to clear it.
     #>
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)]
-        [string]$Path,
+        [string]$UserId,
 
         # [AllowEmptyCollection()] permits an empty array to be passed —
         # "no entries" is a valid state we need to be able to save.
@@ -20,10 +29,15 @@ function Save-HabitStore {
         [object[]]$Entries
     )
 
+    # Build the per-user path the same way Get-HabitStore does. Keeping the
+    # two in lock-step is a deliberate simplicity choice — if we ever need
+    # to share the path logic they move into a tiny third private helper.
+    $path = Join-Path $script:DataRoot "users/$UserId/habits.json"
+
     # Make sure the folder exists before writing.
     # Split-Path -Parent takes a file path and returns the folder part,
-    # e.g. 'data/habits.json' -> 'data'.
-    $folder = Split-Path -Path $Path -Parent
+    # e.g. 'data/users/poom/habits.json' -> 'data/users/poom'.
+    $folder = Split-Path -Path $path -Parent
     if ($folder -and -not (Test-Path -Path $folder -PathType Container)) {
         # New-Item creates a file system item. -ItemType Directory makes it
         # a folder. -Force creates intermediate folders and suppresses the
@@ -48,5 +62,5 @@ function Save-HabitStore {
     # -Encoding utf8 keeps the file portable across macOS / Linux / Windows
     # runbooks (the Windows default is UTF-16 with BOM, which can surprise
     # tools that expect plain UTF-8).
-    Set-Content -Path $Path -Value $json -Encoding utf8
+    Set-Content -Path $path -Value $json -Encoding utf8
 }

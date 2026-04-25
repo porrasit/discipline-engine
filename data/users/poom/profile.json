@@ -1,0 +1,88 @@
+{
+  "userId": "poom",
+  "displayName": "ภูมิ",
+  "createdAt": "2026-04-25",
+  "lineUserId": "",
+  "occupation": {
+    "role": "SysAdmin",
+    "yearsExperience": 3,
+    "techStack": [
+      "Active Directory",
+      "Group Policy",
+      "vSphere",
+      "Microsoft 365",
+      "Entra ID",
+      "Exchange Online",
+      "Dell Avamar",
+      "Cohesity"
+    ],
+    "currentLearning": [
+      "AZ-802",
+      "Git",
+      "Python"
+    ],
+    "careerGoal": "Cloud/Identity Engineer"
+  },
+  "demographics": {
+    "ageRange": "30-39",
+    "location": "Bangkok",
+    "livingSituation": "with-family"
+  },
+  "habits": {
+    "exercise": {
+      "target": 5,
+      "unit": "sessions-per-week"
+    },
+    "sleep": {
+      "target": "22:30",
+      "unit": "bedtime-before"
+    },
+    "development": {
+      "target": 60,
+      "unit": "minutes-per-day"
+    },
+    "custom": []
+  },
+  "interests": {
+    "news": {
+      "categories": [
+        "technology",
+        "ai",
+        "investment"
+      ],
+      "language": "en",
+      "sources": [
+        "TechCrunch",
+        "The Verge",
+        "Hacker News",
+        "Anthropic Blog",
+        "Reuters Business",
+        "Bangkok Post"
+      ]
+    },
+    "learningTopics": []
+  },
+  "sideIncome": {
+    "targetMonthlyAmount": 5000,
+    "currency": "THB",
+    "primaryTrack": "m365-migration-freelance",
+    "secondaryTrack": "ai-it-consulting",
+    "currentEarnings": 0
+  },
+  "preferences": {
+    "tipLanguage": "en",
+    "communicationStyle": "",
+    "timezone": "Asia/Bangkok",
+    "schedule": {
+      "morningBriefing": "07:30",
+      "lunchTip": "12:30",
+      "eveningReview": "21:00"
+    }
+  },
+  "constraints": {
+    "availableHoursPerWeek": 7,
+    "budgetForToolsMonthly": 250,
+    "currency": "THB"
+  },
+  "updateHistory": []
+}

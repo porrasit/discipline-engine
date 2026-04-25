@@ -1,12 +1,12 @@
 function Get-HabitSummary {
     <#
     .SYNOPSIS
-    Compute weekly habit compliance against target thresholds.
+    Compute weekly habit compliance against target thresholds for a user.
 
     .DESCRIPTION
     For the Monday-to-Sunday week containing -WeekOf, counts completed
-    entries per habit and compares them against the project targets
-    defined in CLAUDE.md:
+    entries per habit from the user's store and compares them against the
+    project targets defined in CLAUDE.md:
 
         Exercise:    5 sessions / week
         Sleep:       7 days (before 22:30 each night)
@@ -15,29 +15,29 @@ function Get-HabitSummary {
     Returns a single summary object with the counts, the week boundaries,
     and an overall status label.
 
+    .PARAMETER UserId
+    Which user to summarize. Falls back to $env:DISCIPLINE_ENGINE_DEFAULT_USER
+    if not supplied. Throws if neither is set.
+
     .PARAMETER WeekOf
     Any date inside the target week. Defaults to today. The function
     normalizes to Monday (start) through Sunday (end).
-
-    .PARAMETER Path
-    Path to the JSON store. Same default as Add-HabitEntry.
 
     .EXAMPLE
     Get-HabitSummary
 
     .EXAMPLE
-    Get-HabitSummary -WeekOf 2026-04-20
+    Get-HabitSummary -UserId poom -WeekOf 2026-04-20
     #>
     [CmdletBinding()]
     param(
-        [datetime]$WeekOf = (Get-Date).Date,
+        [string]$UserId,
 
-        [string]$Path = $(if ($env:DISCIPLINE_ENGINE_STORE) {
-            $env:DISCIPLINE_ENGINE_STORE
-        } else {
-            './data/habits.json'
-        })
+        [datetime]$WeekOf = (Get-Date).Date
     )
+
+    # Resolve UserId first so an error surfaces before we do any date math.
+    $UserId = Resolve-UserId -UserId $UserId
 
     # -- Compute the Monday of the target week ------------------------------
     # [int][DayOfWeek] uses .NET's enum: Sunday=0, Monday=1, ..., Saturday=6.
@@ -49,7 +49,7 @@ function Get-HabitSummary {
     $weekEnd   = $weekStart.AddDays(6)   # Sunday
 
     # -- Load and filter entries --------------------------------------------
-    $entries = Get-HabitStore -Path $Path
+    $entries = Get-HabitStore -UserId $UserId
 
     # Where-Object { ... } filters a pipeline; inside the block, $_ is the
     # current item. We parse the stored Date string back to [datetime] with
@@ -110,6 +110,7 @@ function Get-HabitSummary {
 
     # Return one summary object. Format the counts as "x/target" per the spec.
     return [pscustomobject]@{
+        UserId        = $UserId
         WeekStart     = $weekStart.ToString('yyyy-MM-dd')
         WeekEnd       = $weekEnd.ToString('yyyy-MM-dd')
         Exercise      = "$($byHabit.exercise)/$($targets.exercise)"
