@@ -6,7 +6,20 @@ startup, types are validated, and the rest of the code can import a single
 `settings` object instead of sprinkling os.getenv() calls everywhere.
 """
 
+from pathlib import Path
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# Resolve the repo-root .env path from this file's location, not from the
+# current working directory. Otherwise running `uvicorn` from src/webhook/
+# vs. from the repo root would look in different places.
+#   __file__                           = .../src/webhook/app/config.py
+#   parent                             = .../src/webhook/app/
+#   parent.parent                      = .../src/webhook/
+#   parent.parent.parent               = .../src/
+#   parent.parent.parent.parent        = repo root
+_REPO_ROOT = Path(__file__).parent.parent.parent.parent
+_ENV_FILE = _REPO_ROOT / ".env"
 
 
 class Settings(BaseSettings):
@@ -22,11 +35,11 @@ class Settings(BaseSettings):
     DEFAULT_USER_ID: str = "poom"
 
     # `model_config` tells pydantic-settings where to look for values.
-    # We point at the repo-root .env file so local dev "just works" after
-    # copying .env.example -> .env. In production (Azure), real env vars
-    # take precedence over the file.
+    # `_ENV_FILE` is an absolute Path computed above, so it resolves the
+    # same way no matter what directory the process was launched from.
+    # In production (Azure), real env vars take precedence over the file.
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=_ENV_FILE,
         env_file_encoding="utf-8",
         extra="ignore",
     )
